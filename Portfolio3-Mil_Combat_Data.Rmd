@@ -4,26 +4,109 @@ output: html_document
 date: 'April 3, 2022'
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r Packages}
+install.packages(c('gapminder','ggplot2','gganimate','gifski'))
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r Library}
+library(gganimate)
+library(ggplot2)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+1) First, let's make our data set. 
+```{r making data}
+MilStats <- data.frame(suicides = c(153, 155, 174, 190, 197, 182, 213, 211, 268, 309, 295, 301, 525, 475, 444, 478, 478),
+                  combat_deaths = c(0, 0, 0, 312, 735, 739, 769, 847, 352, 346, 456, 394, 259, 0, 0, 0, 0),
+                  year = c(2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016))
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+2) Save the dataset as csv
+```{r Df to CSV}
+library(readr)
+write_csv(MilStats, "~/Documents/GitHub/Portfolio3-Mil_Combat_Data/MilStats.csv")
+```
+
+3) Take a look at our static, non-animated plot
+```{r Scatterplot}
+ggplot(data = MilStats, aes(x= year, y = combat_deaths, suicides)) +
+   geom_point(alpha = 0.7, show.legend = FALSE) +
+   scale_colour_manual(values = country_colors) +
+   labs(title = 'Year: 2000-2016', x = 'Year', y = 'Number of Deaths / Suicides')
+```
+
+
+Let's enter one variable at a time, starting with suicides.
+```{r MultipleVars1}
+plot(MilStats$year,                    # Draw first time series
+     MilStats$suicides,
+     type = "l",
+     col = 2,
+     ylim = c(0, 1000),
+     xlab = "Year",
+     ylab = "Values")
+legend("topright",                     # Add legend to plot
+       c("suicides"),
+       lty = 1,
+       col = 2:4)
+```
+
+Next, let's plot our second variable, combat deaths, with a different color.
+```{r MultipleVars2}
+plot(MilStats$year,                    # Draw second time series
+     MilStats$combat_deaths,
+     type = "l",
+     col = 3,
+     ylim = c(0, 1000),
+     xlab = "Year",
+     ylab = "Values")
+legend("topright",                     # Add legend to plot
+       c("combat_deaths"),
+       lty = 1,
+       col = 3:4)
+```
+
+
+Next, we combine the two. 
+```{r Combine}
+plot(MilStats$year,                    
+     MilStats$suicides,
+     type = "l",
+     col = 2,
+     ylim = c(0, 1000),
+     xlab = "Year",
+     ylab = "Values")
+lines(MilStats$year,                    
+     MilStats$combat_deaths,
+     type = "l",
+     col = 3)
+legend("topright",                     
+       c("combat_deaths", "suicides"),
+       lty = 1,
+       col = 2:3)
+```
+
+
+Finally, let's animate this
+
+```{r Animate}
+plot(MilStats$year,                    
+     MilStats$suicides,
+     type = "l",
+     col = 2,
+     ylim = c(0, 1000),
+     xlab = "Year",
+     ylab = "Values")
+lines(MilStats$year,                    
+     MilStats$combat_deaths,
+     type = "l",
+     col = 3)
+legend("topright",                     
+       c("combat_deaths", "suicides"),
+       lty = 1,
+       col = 2:3)
+labs(title = 'Year: {frame_time}', x = 'Year', y = 'Deaths due to Combat and Suicide') +
+             transition_time(year) +
+             ease_aes('linear')
+animate(MilStats)
+```
