@@ -4,6 +4,10 @@ output: html_document
 date: 'April 3, 2022'
 ---
 
+Picking up from Portfolio2, I first tried to carry over the code from the UN development animation. As I discovered, it was easier to find a code structure similar to the visual I want to create, rather than trying to reserve engineer the UN data visualization. 
+
+1) First, installing packages / libraries. 
+Note: When I had created the final visualization, then knitted the file, R gave me an error message about the install.packages, so I removed this command from the knitted version:
 ``{r Packages}
 install.packages(c('gapminder','ggplot2','gganimate','gifski', 'tidyr', 'ggrepel'))
 ```
@@ -18,28 +22,33 @@ theme_set(theme_bw())
 ```
 
 
-1) First, let's make our data set. 
-```{r making data}
+2) Next, let's make our data set. The best data source on this subject I could track down, that provided both suicides and combat deaths, was an a report from a U.S. Army military staff college. Ivey, Mark W. "Service Member Suicide and Readiness: An Analysis," (2017). This report contained a graph, which itself cited to two separate reports. Therefore, the data below is second-hand and needs to be confirmed. However, I proceed with the following figures for demonstration purposes: 
+
+```{r making data frame}
 MilStats <- data.frame(suicides = c(153, 155, 174, 190, 197, 182, 213, 211, 268, 309, 295, 301, 525, 475, 444, 478, 478),
                   combat_deaths = c(0, 0, 0, 312, 735, 739, 769, 847, 352, 346, 456, 394, 259, 0, 0, 0, 0),
                   year = c(2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016))
 ```
 
-2) Save the dataset as csv
+3) Now, save the dataset as csv:
 ```{r Df to CSV}
 library(readr)
 write_csv(MilStats, "~/Documents/GitHub/Portfolio3-Mil_Combat_Data/MilStatsExcelTest.csv")
 ```
 
-3) Take a look at our static, non-animated plot
+4) Let's take a look at our static, non-animated plot
 ```{r Scatterplot}
 ggplot(data = MilStats, aes(x= year, y = combat_deaths, suicides)) +
    geom_point(alpha = 0.7, show.legend = FALSE) +
    labs(title = 'Year: 2000-2016', x = 'Year', y = 'Number of Deaths / Suicides')
 ```
 
+It was at this point that I realized I was going to need to search for a code that more closely matched exactly what I was trying to depict. Joachim Schork, the founder of the wonderful educational platform for programming tutorials, has many straightforward, accessible codes to suit a beginner's needs. 
+https://statisticsglobe.com/draw-multiple-time-series-in-same-plot-in-r
 
-Let's enter one variable at a time, starting with suicides.
+From this point forward, I used the code found at the Statistics Globe link above. 
+
+5) Moving on, let's enter one variable at a time, starting with suicides.
 ```{r MultipleVars1}
 plot(MilStats$year,                    # Draw first time series
      MilStats$suicides,
@@ -69,7 +78,6 @@ legend("topright",                     # Add legend to plot
        col = 3:4)
 ```
 
-
 Next, we combine the two. 
 ```{r Combine}
 plot(MilStats$year,                    
@@ -90,7 +98,7 @@ legend("topright",
 ```
 
 
-Finally, let's animate this!
+6) Finally, here was my attempted code for animating:
 
 ``{r Animate}
 plot(data=MilStats$year,                    
@@ -116,10 +124,10 @@ animate(MilStats)
 
 This gave me the error "animation of data.frame objects not supported"
 
-So, I hunted for a different code. Dutch data scientist Joαchim Goedhαrt has a terrific script that provides explanations for the code:
+7) So, I hunted for a different code. Dutch data scientist Joαchim Goedhαrt has a terrific script that provides explanations for his code:
 https://github.com/JoachimGoedhart/Animate-Labeled-TimeSeries
 
-I edited my Excel file by hand, so that the relationship between my Excel formatting and my code would match Joαchim Goedhαrt. This made for an incredibly easy transition. Lesson learned: finding the code can be harder than making it run, at time. Never quit!
+I edited my Excel file by hand, so that the relationship between my Excel formatting and my code would match Joαchim Goedhαrt's code structure. This made for an incredibly easy transition. Lesson learned: finding the right code can be harder than making the code run with your unique data. Never quit!
 
 I read my new Excel doc into a dataframe
 ```{r Read data from CSV into a dataframe}
@@ -127,7 +135,7 @@ library(readr)
 dfMilStatsTest <-  read.csv("~/Documents/GitHub/Portfolio3-Mil_Combat_Data/MilStatsExcel.csv")
 ```
 
-Next, for the coup-de-main: the animation code (all comments following # are fully credited to Mr. Goedhαrt)
+8) Next, for the coup-de-main: the animation code (all comments following # are fully credited to Mr. Goedhαrt)
 
 ```{r Define aes}
 ggplot(dfMilStatsTest, aes(Time, Value, group = Object, color = Object)) + 
@@ -158,8 +166,7 @@ ggplot(MilStatsExcel, aes(Time, Value, group = Object, color = Object)) +
   transition_reveal(Time) 
 ``
 
-
-Last, remember to save plot to your file!
+9) Last, remember to save plot to your file!
 ```{r Save plot to file}
 ggsave('MilStats.png', width=8, height=8)
 ```
