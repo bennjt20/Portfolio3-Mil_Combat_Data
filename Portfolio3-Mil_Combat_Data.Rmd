@@ -4,13 +4,17 @@ output: html_document
 date: 'April 3, 2022'
 ---
 
-```{r Packages}
-install.packages(c('gapminder','ggplot2','gganimate','gifski'))
+``{r Packages}
+install.packages(c('gapminder','ggplot2','gganimate','gifski', 'tidyr', 'ggrepel'))
 ```
 
 ```{r Library}
 library(gganimate)
 library(ggplot2)
+library(gifski)
+library(tidyr)
+library(ggrepel)
+theme_set(theme_bw())
 ```
 
 
@@ -24,14 +28,13 @@ MilStats <- data.frame(suicides = c(153, 155, 174, 190, 197, 182, 213, 211, 268,
 2) Save the dataset as csv
 ```{r Df to CSV}
 library(readr)
-write_csv(MilStats, "~/Documents/GitHub/Portfolio3-Mil_Combat_Data/MilStats.csv")
+write_csv(MilStats, "~/Documents/GitHub/Portfolio3-Mil_Combat_Data/MilStatsExcelTest.csv")
 ```
 
 3) Take a look at our static, non-animated plot
 ```{r Scatterplot}
 ggplot(data = MilStats, aes(x= year, y = combat_deaths, suicides)) +
    geom_point(alpha = 0.7, show.legend = FALSE) +
-   scale_colour_manual(values = country_colors) +
    labs(title = 'Year: 2000-2016', x = 'Year', y = 'Number of Deaths / Suicides')
 ```
 
@@ -87,10 +90,10 @@ legend("topright",
 ```
 
 
-Finally, let's animate this
+Finally, let's animate this!
 
-```{r Animate}
-plot(MilStats$year,                    
+``{r Animate}
+plot(data=MilStats$year,                    
      MilStats$suicides,
      type = "l",
      col = 2,
@@ -110,3 +113,56 @@ labs(title = 'Year: {frame_time}', x = 'Year', y = 'Deaths due to Combat and Sui
              ease_aes('linear')
 animate(MilStats)
 ```
+
+This gave me the error "animation of data.frame objects not supported"
+
+So, I hunted for a different code. Dutch data scientist Joαchim Goedhαrt has a terrific script that provides explanations for the code:
+https://github.com/JoachimGoedhart/Animate-Labeled-TimeSeries
+
+I edited my Excel file by hand, so that the relationship between my Excel formatting and my code would match Joαchim Goedhαrt. This made for an incredibly easy transition. Lesson learned: finding the code can be harder than making it run, at time. Never quit!
+
+I read my new Excel doc into a dataframe
+```{r Read data from CSV into a dataframe}
+library(readr)
+dfMilStatsTest <-  read.csv("~/Documents/GitHub/Portfolio3-Mil_Combat_Data/MilStatsExcel.csv")
+```
+
+Next, for the coup-de-main: the animation code (all comments following # are fully credited to Mr. Goedhαrt)
+
+```{r Define aes}
+ggplot(dfMilStatsTest, aes(Time, Value, group = Object, color = Object)) + 
+  geom_line(size=1) +   
+  geom_point(size = 2) + 
+  geom_label_repel(aes(x = Time, y=Value, label = Object, fill = Object), hjust = 0, direction    = "y", nudge_x = 20,
+                   fontface = 'bold',
+                   color = 'white', size=6,
+                   segment.color = 'grey50',
+                   segment.size = 0.5) +
+  transition_reveal(Time) 
+```
+
+Even after successfully creating the animation, when I knitted, the code above gave me an error in Line 133, where the # comment is. So I have deleted those comments in the code and pasted them below.
+``{r Code with # comments}
+#Define the aesthetics for the plot; x=Time, y=Value and each object is grouped and given a unique color
+ggplot(MilStatsExcel, aes(Time, Value, group = Object, color = Object)) + 
+  geom_line(size=1) +   
+  #Show a dot for the new datapoint that is added in a new frame (works well in the animation)
+  geom_point(size = 2) + 
+  #Add labels, geom_label_repel from the ggrepel package is used to avoid overlap between the labels
+  geom_label_repel(aes(x = Time, y=Value, label = Object, fill = Object), hjust = 0, direction    = "y", nudge_x = 20,
+                   fontface = 'bold',
+                   color = 'white', size=6,
+                   segment.color = 'grey50',
+                   segment.size = 0.5) +
+   #This is where the magic happens       
+  transition_reveal(Time) 
+``
+
+
+Last, remember to save plot to your file!
+```{r Save plot to file}
+ggsave('MilStats.png', width=8, height=8)
+```
+That did not work, so I just saved manually!
+
+
